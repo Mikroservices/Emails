@@ -1,9 +1,19 @@
 import App
 import Vapor
+import ExtendedLogging
 
 var env = try Environment.detect()
-try LoggingSystem.bootstrap(from: &env)
+let level = try LoggingSystem.logLevel(from: &env)
+
+LoggingSystem.bootstrap { label -> LogHandler in
+    MultiplexLogHandler([
+        ConsoleLogger(label: label, console: Terminal(), level: level),
+        FileLogger(label: label, path: "Logs/emails.log", level: level)
+    ])
+}
+
 let app = Application(env)
 defer { app.shutdown() }
-try configure(app)
+
+try app.configure()
 try app.run()
