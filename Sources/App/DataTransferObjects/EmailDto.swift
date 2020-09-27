@@ -12,5 +12,8 @@ extension EmailDto: Content { }
 
 extension EmailDto: Validatable {
     static func validations(_ validations: inout Validations) {
+        validations.add("to") { (nestedValidation) in
+            EmailAddressDto.validations(&nestedValidation)
+        }
     }
 }

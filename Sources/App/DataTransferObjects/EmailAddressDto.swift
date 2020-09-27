@@ -9,6 +9,6 @@ extension EmailAddressDto: Content { }
 
 extension EmailAddressDto: Validatable {
     static func validations(_ validations: inout Validations) {
-        validations.add("address", as: String.self, is: .email)
+        validations.add("address", as: String.self, is: .email && !.empty)
     }
 }

@@ -12,6 +12,16 @@ jobs:
     - uses: YOCKOW/Action-setup-swift@master
       with:
         swift-version: '5.3'
+    - shell: bash
+      env:
+        MAILTRAPUSER: ${{ secrets.MAILTRAPUSER }}
+      run: |
+        sed -i -e 's/#MAILTRAPUSER#/'"$MAILTRAPUSER"'/g' Tests/AppTests/EmailsController/SendActionTests.swift
+    - shell: bash
+      env:
+        MAILTRAPPASS: ${{ secrets.MAILTRAPPASS }}
+      run: |
+        sed -i -e 's/#MAILTRAPPASS#/'"$MAILTRAPPASS"'/g' Tests/AppTests/EmailsController/SendActionTests.swift
     - name: Install SQLite libs
       run: sudo apt-get install libsqlite3-dev
     - name: Build
