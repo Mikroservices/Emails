@@ -10,22 +10,23 @@ final class SendActionTests: XCTestCase {
         defer { app.shutdown() }
         try app.configure()
 
-        // Act.
         let email = EmailDto(to: EmailAddressDto(address: "test@mczachurski.dev"),
                              subject: "Subject (testSendEmailShoudReturnStatus)",
                              body: "Body (testSendEmailShoudReturnStatus)")
         let emailData = try JSONEncoder().encode(email)
         
-        // Assert.
+        // Act.        
         try app.test(.POST, "emails/send",
                      headers: ["Content-Type": "application/json"],
                      body: ByteBuffer(data: emailData),
                      afterResponse: { res in
+
+            // Assert.
             XCTAssertEqual(res.status, .ok)
             let booleanResponse = try JSONDecoder().decode(BooleanResponseDto.self, from: res.body.string.data(using: .utf8)!)
             XCTAssertTrue(booleanResponse.result)
+            sleep(3)
         })
-        sleep(3)
     }
     
     func testEmailShouldNotBeSendWhenEmailAddressWasNotSpecified() throws {
@@ -35,21 +36,22 @@ final class SendActionTests: XCTestCase {
         defer { app.shutdown() }
         try app.configure()
 
-        // Act.
         let email = EmailDto(to: EmailAddressDto(address: ""),
-                             subject: "Subject (testSendEmailShoudReturnStatus)",
-                             body: "Body (testSendEmailShoudReturnStatus)")
+                             subject: "Subject (testEmailShouldNotBeSendWhenEmailAddressWasNotSpecified)",
+                             body: "Body (testEmailShouldNotBeSendWhenEmailAddressWasNotSpecified)")
         let emailData = try JSONEncoder().encode(email)
         
-        // Assert.
+        // Act.
         try app.test(.POST, "emails/send",
                      headers: ["Content-Type": "application/json"],
                      body: ByteBuffer(data: emailData),
                      afterResponse: { res in
+                        
+            // Assert.
             XCTAssertEqual(res.status, .badRequest)
             XCTAssertContains(res.body.string, "Validation errors occurs.")
+            sleep(3)
         })
-        sleep(3)
     }
     
     private func createSettingsFile() throws {
