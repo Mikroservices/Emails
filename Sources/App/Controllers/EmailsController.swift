@@ -13,27 +13,26 @@ final class EmailsController: RouteCollection {
     }
 
     /// Sending email.
-    func send(request: Request) throws -> EventLoopFuture<BooleanResponseDto> {
+    func send(request: Request) async throws -> BooleanResponseDto {
         let emailDto = try request.content.decode(EmailDto.self)
         try EmailDto.validate(content: request)
         
         let fromAddress = emailDto.from?.address ?? request.application.settings.getString(for: "smtp.fromEmail", withDefault: "")
         let fromName = emailDto.from?.address ?? request.application.settings.getString(for: "smtp.fromName",withDefault: "")
         
-        let email = Email(from: EmailAddress(address: fromAddress, name: fromName),
+        let email = try Email(from: EmailAddress(address: fromAddress, name: fromName),
                           to: [EmailAddress(address: emailDto.to.address, name: emailDto.to.name)],
                           subject: emailDto.subject,
                           body: emailDto.body)
 
-        return request.smtp.send(email).map { result in
-            switch result {
-            case .success:
-                request.logger.info("Email to '\(emailDto.to.address)' has been sent.")
-                return BooleanResponseDto(result: true)
-            case .failure(let error):
-                request.logger.error("Error during sending email: \(error)")
-                return BooleanResponseDto(result: false)
-            }
+        do {
+            try await request.smtp.send(email)
+            
+            request.logger.info("Email to '\(emailDto.to.address)' has been sent.")
+            return BooleanResponseDto(result: true)
+        } catch (let error) {
+            request.logger.error("Error during sending email: \(error)")
+            return BooleanResponseDto(result: false)
         }
     }
 }

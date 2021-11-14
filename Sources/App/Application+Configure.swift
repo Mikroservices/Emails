@@ -47,7 +47,7 @@ extension Application {
             .environmentVariables(.withPrefix("smtp"))
         ])
                 
-        self.settings.configuration.items.forEach { (key: String, value: Any) in
+        self.settings.configuration.all().forEach { (key: String, value: Any) in
             self.logger.info("Configuration: \(key), value: \(value)")
         }
     }
@@ -56,8 +56,15 @@ extension Application {
         
         smtp.configuration.hostname = self.settings.getString(for: "smtp.hostname", withDefault: "")
         smtp.configuration.port = self.settings.getInt(for: "smtp.port", withDefault: 465)
-        smtp.configuration.username = self.settings.getString(for: "smtp.username", withDefault: "")
-        smtp.configuration.password = self.settings.getString(for: "smtp.password", withDefault: "")
+        
+        let username = self.settings.getString(for: "smtp.username", withDefault: "")
+        let password = self.settings.getString(for: "smtp.password", withDefault: "")
+        
+        if username.isEmpty {
+            smtp.configuration.signInMethod = .anonymous
+        } else {
+            smtp.configuration.signInMethod = .credentials(username: username, password: password)
+        }
         
         switch self.settings.getString(for: "smtp.secure") {
         case "ssl":
